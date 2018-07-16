@@ -1,9 +1,7 @@
 '''
 Dataset:
     An experimental drug was tested on individuals from 13 to 100yo.
-    The trial had 2100 participants. Half were under 65yo, half were over 65yo.
-    95% of patientes 65 or older experienced side effects
-    95% of patients under 65 experienced no side effects
+    The trial had 10000 participants.
 '''
 
 import numpy as np
