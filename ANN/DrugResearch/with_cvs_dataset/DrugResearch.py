@@ -1,60 +1,51 @@
 '''
 Dataset:
     An experimental drug was tested on individuals from 13 to 100yo.
-    The trial had 10000 participants.
+    The trial had 2100 participants. Half were under 65yo, half were over 65yo.
+    95% of patientes 65 or older experienced side effects
+    95% of patients under 65 experienced no side effects
 '''
 
-#TODO read data from csv
-
 import numpy as np
-from random import randint
-from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+import pandas as pd
 
-train_labels = []
-train_samples = []
+dataset = pd.read_csv('dataset.csv')
+samples = dataset.iloc[:, 1:6].values
+labels = dataset.iloc[:, 6].values
 
-for i in range(1000):
-    random_younger = randint(13, 64)
-    train_samples.append(random_younger)
-    train_labels.append(0)
-    
-    random_older = randint(65, 100)
-    train_samples.append(random_older)
-    train_labels.append(1)
-    
-for i in range(50):
-    random_younger = randint(13, 64)
-    train_samples.append(random_younger)
-    train_labels.append(1)
-    
-    random_older = randint(65, 100)
-    train_samples.append(random_older)
-    train_labels.append(0)
-    
-train_labels = np.array(train_labels)
-train_samples = np.array(train_samples)
-scaler = MinMaxScaler(feature_range=(0,1))
-scaled_train_samples = scaler.fit_transform((train_samples).reshape(-1,1))
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+label_encoder_X = LabelEncoder()
+samples[:, 0] = label_encoder_X.fit_transform(samples[:, 0])
+onehotencoder = OneHotEncoder(categorical_features=[0])
+samples = onehotencoder.fit_transform(samples).toarray()
+
+from sklearn.model_selection import train_test_split
+train_samples, test_samples, train_labels, test_labels = train_test_split(samples, labels, test_size=0.5, random_state=0)
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+train_samples = scaler.fit_transform(train_samples)
+test_samples = scaler.transform(test_samples)
 
 #########################
 
 import keras
 from keras.models import Sequential
 from keras.layers.core import Dense
-from keras.optimizers import Adam
 
 model = Sequential([
-        Dense(16, input_shape=(1,), activation='relu'), #Input layer
-        Dense(32, activation='relu'),                   #Hidden layer
-        Dense(2, activation='softmax')                  #Output layer
+        Dense(units=16, activation='relu', kernel_initializer='uniform'),   #Input layer
+        Dense(units=32, activation='relu', kernel_initializer='uniform'),   #Hidden layer
+        Dense(units=1, activation='sigmoid', kernel_initializer='uniform')  #Output layer
         ])
 
-model.summary()
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.fit(train_samples, train_labels, batch_size=10, epochs=100)
 
-model.compile(Adam(lr=.0001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-model.fit(scaled_train_samples, train_labels, batch_size=10, validation_split=0.4, epochs=20, verbose=2)
+#######################
 
-########################
+# model.summary()
 
 
 
